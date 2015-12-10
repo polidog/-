@@ -1,0 +1,15 @@
+{
+    "name": "polidog/wordpress",
+    "description": "check wordpress",
+    "keywords": [],
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "http://wpackagist.org"
+        }
+    ],
+    "require": {
+        "php": ">=7.0",
+        "johnpbloch/wordpress": "*"
+    }
+}

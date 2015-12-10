@@ -1,0 +1,6 @@
+composer.phar
+composer.lock
+wordpress
+vendor
+vagrant_config.yml
+.vagrant

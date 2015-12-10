@@ -1,0 +1,8 @@
+box: "geerlingguy/centos7"
+ip: "192.168.33.140"
+synced_folders:
+  - host: './'
+    guest: '/var/www/app'
+    type: nfs
+
+memory: 1024
