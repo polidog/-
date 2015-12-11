@@ -61,7 +61,7 @@ fi
 if ! command_exists php ; then
   php_repo_file="/etc/yum.repos.d/php"
   rpm -Uvh http://rpms.famillecollet.com/enterprise/remi-release-7.rpm
-  yum install -y --enablerepo=remi-php70 php php-ast php-fpm php-mysqlnd php-pdo php-tidy php-zip
+  yum install -y --enablerepo=remi-php70 php php-ast php-fpm php-mysqlnd php-pdo php-tidy php-zip php-mbstring php-gd
 fi
 
 # php config
