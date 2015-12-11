@@ -5,9 +5,53 @@ function command_exists {
 }
 
 # config
+HOST=polidog.local
+PORT=80
+
 APP_DIR="/var/www/app"
 MYSQL_PASSWORD="root"
 WP_DATABASE_NAME="wordpress"
+
+while [ $# -gt 0 ];
+do
+    case ${1} in
+
+        --host|-h)
+            HOST=${2}
+            shift
+        ;;
+
+        --port|-p)
+            PORT=${2}
+            shift
+        ;;
+
+        --dir)
+            APP_DIR=${2}
+            shift
+        ;;
+
+        --mysql-password)
+            MYSQL_PASSWORD=${2}
+            shift
+        ;;
+
+        --database-name|-n)
+            WP_DATABASE_NAME=${2}
+            shift
+        ;;
+
+        *)
+            echo "[ERROR] Invalid option '${1}'"
+            usage
+            exit 1
+        ;;
+    esac
+    shift
+done
+
+
+
 
 # base
 yum install -y epel-release
@@ -35,9 +79,13 @@ if ! command_exists nginx ; then
 
   # サービス登録
   systemctl enable nginx.service
-  systemctl restart nginx
+
 
 fi
+
+sed -i "s/listen 80;$/listen ${PORT};/" ${nginx_conf_file}
+sed -i "s/server_name .*;$/server_name ${HOST};/" ${nginx_conf_file}
+systemctl restart nginx
 
 
 
@@ -62,19 +110,16 @@ if ! command_exists php ; then
   php_repo_file="/etc/yum.repos.d/php"
   rpm -Uvh http://rpms.famillecollet.com/enterprise/remi-release-7.rpm
   yum install -y --enablerepo=remi-php70 php php-ast php-fpm php-mysqlnd php-pdo php-tidy php-zip php-mbstring php-gd
-fi
 
-# php config
-sed -i "s/^;date.timezone =$/date.timezone = \"Asia\/Tokyo\"/" /etc/php.ini | grep "^timezone" /etc/php.ini
+  # php config
+  sed -i "s/^;date.timezone =$/date.timezone = \"Asia\/Tokyo\"/" /etc/php.ini | grep "^timezone" /etc/php.ini
 
-# php-fpm config
-sed -i "s/^listen = 127.0.0.1:9000$/listen = \/var\/run\/php-fpm\/php-fpm\.sock/" /etc/php-fpm.d/www.conf | grep "^listen" /etc/php.ini
-sed -i "s/^;listen.mode = 0660$/listen.mode = 0666/" /etc/php-fpm.d/www.conf | grep "^listen\.mode" /etc/php-fpm.d/www.conf
-sed -i "s/^user = apache$/user = nginx/" /etc/php-fpm.d/www.conf | grep "^user =" /etc/php-fpm.d/www.conf
-sed -i "s/^group = apache$/group = nginx/" /etc/php-fpm.d/www.conf | grep "^group =" /etc/php-fpm.d/www.conf
+  # php-fpm config
+  sed -i "s/^listen = 127.0.0.1:9000$/listen = \/var\/run\/php-fpm\/php-fpm\.sock/" /etc/php-fpm.d/www.conf | grep "^listen" /etc/php.ini
+  sed -i "s/^;listen.mode = 0660$/listen.mode = 0666/" /etc/php-fpm.d/www.conf | grep "^listen\.mode" /etc/php-fpm.d/www.conf
+  sed -i "s/^user = apache$/user = nginx/" /etc/php-fpm.d/www.conf | grep "^user =" /etc/php-fpm.d/www.conf
+  sed -i "s/^group = apache$/group = nginx/" /etc/php-fpm.d/www.conf | grep "^group =" /etc/php-fpm.d/www.conf
 
-# php-fpm start
-if command_exists php ; then
   systemctl enable php-fpm.service
   systemctl start php-fpm.service
 fi
@@ -85,4 +130,6 @@ if ! command_exists composer ; then
   cd ${APP_DIR}
 fi
 
-composer install --no-interaction
+if [ ! -e ${APP_DIR}/wordpress ] ; then
+  composer install --no-interaction
+fi
